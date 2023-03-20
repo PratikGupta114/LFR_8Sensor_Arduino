@@ -1,0 +1,16 @@
+#pragma once
+
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#define BLUETOOTH_LOGGING_ENABLED 1
+#define BLUETOOTH_TUNING_ENABLED 1
+
+#define BRAKING_ENABLED 0
+#define GAPS_ENABLED 1
+#define USE_I2C_ADAPTER 1
+
+#define LEFT_HALF_ADDRESS 0x20
+#define RIGHT_HALF_ADDRESS 0x24
+
+#endif
