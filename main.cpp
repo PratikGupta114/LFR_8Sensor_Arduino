@@ -27,6 +27,11 @@ StaticJsonDocument<TX_DOC_MAX_DATA_LEN> txDoc;
 StaticJsonDocument<RX_DOC_MAX_DATA_LEN> rxDoc;
 #endif
 
+#define MID_8_SENSORS_HIGH (s3 == 1 && s4 == 1 && s5 == 1 && s6 == 1 && s7 == 1 && s8 == 1 && s9 == 1 && s10 == 1)
+#define MID_8_SENSORS_LOW (s3 == 0 && s4 == 0 && s5 == 0 && s6 == 0 && s7 == 0 && s8 == 0 && s9 == 0 && s10 == 0)
+
+#define MID_6_SENSORS_HIGH (s4 == 1 && s5 == 1 && s6 == 1 && s7 == 1 && s8 == 1 && s9 == 1)
+
 // Macro function definitions
 
 int Kp = DEFAULT_KP;
@@ -43,18 +48,18 @@ int D = 0;
 int error_dir = 0;
 int previousError = 0;
 int PID_value = 0;
-uint8_t isInverted = WHITE_LINE_BLACK_TRACK;
+uint8_t isInverted = BLACK_LINE_WHITE_TRACK;
 
 void indicateOn()
 {
 	digitalWrite(BUZZER, HIGH);
-	digitalWrite(BUZZER, HIGH);
+	digitalWrite(BLUE_LED, HIGH);
 }
 
 void indicateOff()
 {
 	digitalWrite(BUZZER, LOW);
-	digitalWrite(BUZZER, LOW);
+	digitalWrite(BLUE_LED, LOW);
 }
 
 void readSensors()
@@ -65,8 +70,6 @@ void readSensors()
 
 	// left most sensor value
 	int s1 = (sensorData & (1 << 13)) >> 13;
-
-#if BLUETOOTH_LOGGING_ENABLED == 1
 
 	int s2 = (sensorData & (1 << 12)) >> 12;
 	int s3 = (sensorData & (1 << 11)) >> 11;
@@ -79,15 +82,18 @@ void readSensors()
 	int s10 = (sensorData & (1 << 4)) >> 4;
 	int s11 = (sensorData & (1 << 3)) >> 3;
 
-#endif
-
 	// right most sensor value
 	int s12 = (sensorData & (1 << 2)) >> 2;
 
 	if (s1 != s12)
 		error_dir = s1 - s12;
 
-	// This else block bypasses the fallback error value of 255
+	if (MID_6_SENSORS_HIGH)
+		indicateOn();
+	else
+		indicateOff();
+
+	// When all the sensors go low
 	if (sensorData == 0b0000000000000000)
 	{
 		// Moved out of the line
@@ -96,60 +102,25 @@ void readSensors()
 		else if (error_dir > 0)
 			error = -1 * OUT_OF_LINE_ERROR_VALUE;
 	}
-	else if (s3 == 1 && s4 == 1 && s5 == 1 && s6 == 1 && s7 == 1 && s8 == 1 && s9 == 1 && s10 == 1)
+	else if (sensorData == 0b0011111111111100)
 	{
-		// checkpoint or a stop
-		indicateOn();
-
-		if (isInverted == BLACK_LINE_WHITE_TRACK)
+		// This is a stop
+		moveStraight(baseMotorSpeed, baseMotorSpeed);
+		delay(STOP_DELAY);
+		uint16_t sensorDataAgain = getSensorReadings();
+		if (sensorDataAgain == 0b0011111111111100)
 		{
-			moveStraight(baseMotorSpeed, baseMotorSpeed);
-			delay(STOP_DELAY);
-			uint16_t sensorDataAgain = getSensorReadings();
-
-			s3 = (sensorDataAgain & (1 << 11)) >> 11;
-			s4 = (sensorDataAgain & (1 << 10)) >> 10;
-			s5 = (sensorDataAgain & (1 << 9)) >> 9;
-			s6 = (sensorDataAgain & (1 << 8)) >> 8;
-			s7 = (sensorDataAgain & (1 << 7)) >> 7;
-			s8 = (sensorDataAgain & (1 << 6)) >> 6;
-			s9 = (sensorDataAgain & (1 << 5)) >> 5;
-			s10 = (sensorDataAgain & (1 << 4)) >> 4;
-
-			if (s3 == 1 && s4 == 1 && s5 == 1 && s6 == 1 && s7 == 1 && s8 == 1 && s9 == 1 && s10 == 1)
-			{
-				shortBrake(100);
-				stop();
-				delay(10000);
-			}
+			indicateOff();
+			shortBrake(1000);
+			stop();
+			delay(10000);
 		}
 	}
-	// else if (sensorData == 0b0011111111111100)
-	// {
-	// 	// checkpoint or a stop
-	// 	indicateOn();
-
-	// 	if (isInverted == BLACK_LINE_WHITE_TRACK)
-	// 	{
-	// 		moveStraight(baseMotorSpeed, baseMotorSpeed);
-	// 		delay(STOP_DELAY);
-	// 		uint16_t sensorDataAgain = getSensorReadings();
-	// 		if (sensorDataAgain == 0b0011111111111100)
-	// 		{
-	// 			shortBrake(100);
-	// 			stop();
-	// 			delay(10000);
-	// 		}
-	// 	}
-	// }
-
-	if (sensorData != 0b0011111111111100)
-		indicateOff();
 
 	if (isInverted == BLACK_LINE_WHITE_TRACK)
-		digitalWrite(BLUE_LED, HIGH);
+		digitalWrite(WHITE_LED, HIGH);
 	else if (isInverted == WHITE_LINE_BLACK_TRACK)
-		digitalWrite(BLUE_LED, LOW);
+		digitalWrite(WHITE_LED, LOW);
 
 #if BLUETOOTH_LOGGING_ENABLED == 1
 
@@ -194,30 +165,36 @@ void controlMotors()
 {
 	if (error == OUT_OF_LINE_ERROR_VALUE)
 	{
+#if BRAKING_ENABLED == 1
+		shortBrake(BRAKE_DURATION_MILLIS);
+#endif
 		uint8_t sensorReadings = getSensorReadings();
 		while (isOutOfLine(sensorReadings))
 		{
 			turnCW(baseMotorSpeed - leftMotorOffset, baseMotorSpeed - rightMotorOffset);
 			sensorReadings = getSensorReadings();
 		}
-#if BRAKING_ENABLED == 1
-		shortBrake(BRAKE_DURATION_MILLIS);
-#endif
+// #if BRAKING_ENABLED == 1
+// 		shortBrake(BRAKE_DURATION_MILLIS);
+// #endif
 #if GAPS_ENABLED == 1
 		error_dir = 0;
 #endif
 	}
 	else if (error == (-1 * OUT_OF_LINE_ERROR_VALUE))
 	{
+#if BRAKING_ENABLED == 1
+		shortBrake(BRAKE_DURATION_MILLIS);
+#endif
 		uint8_t sensorReadings = getSensorReadings();
 		while (isOutOfLine(sensorReadings))
 		{
 			turnCCW(baseMotorSpeed - leftMotorOffset, baseMotorSpeed - rightMotorOffset);
 			sensorReadings = getSensorReadings();
 		}
-#if BRAKING_ENABLED == 1
-		shortBrake(BRAKE_DURATION_MILLIS);
-#endif
+// #if BRAKING_ENABLED == 1
+// 		shortBrake(BRAKE_DURATION_MILLIS);
+// #endif
 #if GAPS_ENABLED == 1
 		error_dir = 0;
 #endif
@@ -271,7 +248,7 @@ void setup()
 	Wire.begin();
 
 #if BLUETOOTH_LOGGING_ENABLED == 1 || BLUETOOTH_TUNING_ENABLED == 1
-	BLUETOOTH_SERIAL.begin(115200);
+	BLUETOOTH_SERIAL.begin(SERIAL_BAUD_RATE);
 #endif
 }
 
@@ -306,7 +283,6 @@ void loop()
 	}
 
 #endif
-
 	readSensors();
 	calculatePID();
 	controlMotors();

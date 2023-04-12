@@ -2,8 +2,8 @@
 #include "MotorControl.h"
 #include "PinDefinitions.h"
 #include <util/delay.h>
-
-#define TURN_SPEED_REDUCTION_FACTOR 20
+#include "Config.h"
+#include "Defaults.h"
 
 void moveStraight(int leftMotorSpeed, int rightMotorSpeed)
 {
@@ -32,6 +32,11 @@ void turnCCW(int leftMotorSpeed, int rightMotorSpeed)
     digitalWrite(RIGHT_MOTOR_PIN_1, HIGH);
     digitalWrite(RIGHT_MOTOR_PIN_2, LOW);
 
+#if (TURN_SPEED_REDUCTION_ENABLED == 1)
+    leftMotorSpeed = (leftMotorSpeed * (100 - TURN_SPEED_REDUCTION_PERCENT)) / 100;
+    rightMotorSpeed = (rightMotorSpeed * (100 - TURN_SPEED_REDUCTION_PERCENT)) / 100;
+#endif
+
     leftMotorSpeed = constrain(leftMotorSpeed, 0, 255);
     rightMotorSpeed = constrain(rightMotorSpeed, 0, 255);
 
@@ -49,6 +54,11 @@ void turnCW(int leftMotorSpeed, int rightMotorSpeed)
     digitalWrite(RIGHT_MOTOR_PIN_1, LOW);
     digitalWrite(RIGHT_MOTOR_PIN_2, HIGH);
 
+#if (TURN_SPEED_REDUCTION_ENABLED == 1)
+    leftMotorSpeed = (leftMotorSpeed * (100 - TURN_SPEED_REDUCTION_PERCENT)) / 100;
+    rightMotorSpeed = (rightMotorSpeed * (100 - TURN_SPEED_REDUCTION_PERCENT)) / 100;
+#endif
+
     leftMotorSpeed = constrain(leftMotorSpeed, 0, 255);
     rightMotorSpeed = constrain(rightMotorSpeed, 0, 255);
 
@@ -58,6 +68,10 @@ void turnCW(int leftMotorSpeed, int rightMotorSpeed)
 
 void shortBrake(int durationMillis)
 {
+
+    analogWrite(LEFT_MOTOR_PWM_PIN, 0);
+    analogWrite(RIGHT_MOTOR_PWM_PIN, 0);
+
     // Left motor front
     digitalWrite(LEFT_MOTOR_PIN_1, HIGH);
     digitalWrite(LEFT_MOTOR_PIN_2, HIGH);
@@ -65,9 +79,6 @@ void shortBrake(int durationMillis)
     // Right motor front
     digitalWrite(RIGHT_MOTOR_PIN_1, HIGH);
     digitalWrite(RIGHT_MOTOR_PIN_2, HIGH);
-
-    analogWrite(LEFT_MOTOR_PWM_PIN, 0);
-    analogWrite(RIGHT_MOTOR_PWM_PIN, 0);
 
     delay(durationMillis);
 }
