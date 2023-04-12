@@ -92,39 +92,39 @@ uint16_t getSensorReadings()
     //     memset(buffer, 0x00, 50);
     // #endif
 
-    if (reading == 0b0000110000000000)
-        isInverted = WHITE_LINE_BLACK_TRACK;
-    else if (reading == 0b0000011000000000 || reading == 0b0000111000000000 || reading == 0b0000010000000000)
-        isInverted = WHITE_LINE_BLACK_TRACK;
-    if (reading == 0b0000011100000000)
-        isInverted = WHITE_LINE_BLACK_TRACK;
-    else if (reading == 0b0000001110000000 || reading == 0b0000001100000000 || reading == 0b0000000100000000)
-        isInverted = WHITE_LINE_BLACK_TRACK;
-    else if (reading == 0b0000000110000000)
-        isInverted = WHITE_LINE_BLACK_TRACK;
-    else if (reading == 0b0000000111000000 || reading == 0b0000000011000000 || reading == 0b0000000010000000)
-        isInverted = WHITE_LINE_BLACK_TRACK;
-    else if (reading == 0b0000000011100000)
-        isInverted = WHITE_LINE_BLACK_TRACK;
-    else if (reading == 0b0000000001100000 || reading == 0b0000000001110000 || reading == 0b0000000000100000)
-        isInverted = WHITE_LINE_BLACK_TRACK;
+    // if (reading == 0b0000110000000000)
+    //     isInverted = WHITE_LINE_BLACK_TRACK;
+    // else if (reading == 0b0000011000000000 || reading == 0b0000111000000000 || reading == 0b0000010000000000)
+    //     isInverted = WHITE_LINE_BLACK_TRACK;
+    // if (reading == 0b0000011100000000)
+    //     isInverted = WHITE_LINE_BLACK_TRACK;
+    // else if (reading == 0b0000001110000000 || reading == 0b0000001100000000 || reading == 0b0000000100000000)
+    //     isInverted = WHITE_LINE_BLACK_TRACK;
+    // else if (reading == 0b0000000110000000)
+    //     isInverted = WHITE_LINE_BLACK_TRACK;
+    // else if (reading == 0b0000000111000000 || reading == 0b0000000011000000 || reading == 0b0000000010000000)
+    //     isInverted = WHITE_LINE_BLACK_TRACK;
+    // else if (reading == 0b0000000011100000)
+    //     isInverted = WHITE_LINE_BLACK_TRACK;
+    // else if (reading == 0b0000000001100000 || reading == 0b0000000001110000 || reading == 0b0000000000100000)
+    //     isInverted = WHITE_LINE_BLACK_TRACK;
 
-    if (reading == 0b0011001111111100)
-        isInverted = BLACK_LINE_WHITE_TRACK;
-    else if (reading == 0b0011100111111100 || reading == 0b0011000111111100 || reading == 0b0011101111111100)
-        isInverted = BLACK_LINE_WHITE_TRACK;
-    else if (reading == 0b0011100011111100)
-        isInverted = BLACK_LINE_WHITE_TRACK;
-    else if (reading == 0b0011110001111100 || reading == 0b0011110011111100 || reading == 0b0011111011111100)
-        isInverted = BLACK_LINE_WHITE_TRACK;
-    else if (reading == 0b0011111001111100)
-        isInverted = BLACK_LINE_WHITE_TRACK;
-    else if (reading == 0b0011111000111100 || reading == 0b0011111100111100 || reading == 0b0011111101111100)
-        isInverted = BLACK_LINE_WHITE_TRACK;
-    else if (reading == 0b0011111100011100)
-        isInverted = BLACK_LINE_WHITE_TRACK;
-    else if (reading == 0b0011111110011100 || reading == 0b0011111110001100 || reading == 0b0011111111011100)
-        isInverted = BLACK_LINE_WHITE_TRACK;
+    // if (reading == 0b0011001111111100)
+    //     isInverted = BLACK_LINE_WHITE_TRACK;
+    // else if (reading == 0b0011100111111100 || reading == 0b0011000111111100 || reading == 0b0011101111111100)
+    //     isInverted = BLACK_LINE_WHITE_TRACK;
+    // else if (reading == 0b0011100011111100)
+    //     isInverted = BLACK_LINE_WHITE_TRACK;
+    // else if (reading == 0b0011110001111100 || reading == 0b0011110011111100 || reading == 0b0011111011111100)
+    //     isInverted = BLACK_LINE_WHITE_TRACK;
+    // else if (reading == 0b0011111001111100)
+    //     isInverted = BLACK_LINE_WHITE_TRACK;
+    // else if (reading == 0b0011111000111100 || reading == 0b0011111100111100 || reading == 0b0011111101111100)
+    //     isInverted = BLACK_LINE_WHITE_TRACK;
+    // else if (reading == 0b0011111100011100)
+    //     isInverted = BLACK_LINE_WHITE_TRACK;
+    // else if (reading == 0b0011111110011100 || reading == 0b0011111110001100 || reading == 0b0011111111011100)
+    //     isInverted = BLACK_LINE_WHITE_TRACK;
 
     // invert the sensor readings
     if (isInverted == BLACK_LINE_WHITE_TRACK)
