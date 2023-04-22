@@ -106,7 +106,7 @@ void readSensors()
 	{
 		// This is a stop
 		moveStraight(baseMotorSpeed, baseMotorSpeed);
-		delay(STOP_DELAY);
+		delay(STOP_CHECK_DELAY);
 		uint16_t sensorDataAgain = getSensorReadings();
 		if (sensorDataAgain == 0b0011111111111100)
 		{
@@ -116,11 +116,6 @@ void readSensors()
 			delay(10000);
 		}
 	}
-
-	if (isInverted == BLACK_LINE_WHITE_TRACK)
-		digitalWrite(WHITE_LED, HIGH);
-	else if (isInverted == WHITE_LINE_BLACK_TRACK)
-		digitalWrite(WHITE_LED, LOW);
 
 #if BLUETOOTH_LOGGING_ENABLED == 1
 
@@ -135,9 +130,10 @@ void readSensors()
 
 	BLUETOOTH_SERIAL.print("I|Value : ");
 	BLUETOOTH_SERIAL.print(String(ss));
-	BLUETOOTH_SERIAL.print(" | Error : ");
-	BLUETOOTH_SERIAL.print(error);
-	BLUETOOTH_SERIAL.print(" i-");
+	BLUETOOTH_SERIAL.print(" | ");
+	// BLUETOOTH_SERIAL.print(" | Error : ");
+	// BLUETOOTH_SERIAL.print(error);
+	// BLUETOOTH_SERIAL.print(" i-");
 	BLUETOOTH_SERIAL.println(isInverted);
 	txDoc.clear();
 
@@ -213,25 +209,6 @@ void controlMotors()
 
 void setup()
 {
-
-	// Sensor pins data direction set to input
-	// DDRA &= ~(1 << S1) & ~(1 << S2) & ~(1 << S3) & ~(1 << S4) & ~(1 << S5);
-	// DDRC &= ~(1 << S6) & ~(1 << S7) & ~(1 << S8) & ~(1 << S9) & ~(1 << S10) & ~(1 << S11) & ~(1 << S12);
-
-	// // Pulling up the internal resistors of the pins above
-	// PORTA |= (1 << S1) | (1 << S2) | (1 << S3) | (1 << S4) | (1 << S5);
-	// PORTC |= (1 << S6) | (1 << S7) | (1 << S8) | (1 << S9) | (1 << S10) | (1 << S11) | (1 << S12);
-
-	// DDRD |= (1 << RIGHT_MOTOR_PIN_1) | (1 << RIGHT_MOTOR_PIN_2);
-	// DDRD |= (1 << LEFT_MOTOR_PIN_1) | (1 << LEFT_MOTOR_PIN_1);
-
-	// DDRD |= (1 << RIGHT_MOTOR_PWM_PIN);
-	// DDRB |= (1 << LEFT_MOTOR_PWM_PIN);
-
-	// TCCR0 |= (1 << WGM00) | (1 << WGM01) | (1 << COM01) | (1 << CS00);
-	// TCCR2 |= (1 << WGM20) | (1 << WGM21) | (1 << COM21) | (1 << CS20);
-
-	// DDRA |= (1 << BLUE_LED) | (1 << WHITE_LED) | (1 << BUZZER);
 
 	pinMode(LEFT_MOTOR_PIN_1, OUTPUT);
 	pinMode(LEFT_MOTOR_PIN_2, OUTPUT);
