@@ -52,14 +52,25 @@ uint8_t isInverted = BLACK_LINE_WHITE_TRACK;
 
 void indicateOn()
 {
+
+#if (BARE_METAL_GPIO_CONTROL_ENABLED == 0)
 	digitalWrite(BUZZER, HIGH);
 	digitalWrite(BLUE_LED, HIGH);
+#endif
+#if (BARE_METAL_GPIO_CONTROL_ENABLED == 1)
+	PORTD |= (1 << BUZZER) | (1 << BLUE_LED);
+#endif
 }
 
 void indicateOff()
 {
+#if (BARE_METAL_GPIO_CONTROL_ENABLED == 0)
 	digitalWrite(BUZZER, LOW);
 	digitalWrite(BLUE_LED, LOW);
+#endif
+#if (BARE_METAL_GPIO_CONTROL_ENABLED == 1)
+	PORTD &= ~(1 << BUZZER) & ~(1 << BLUE_LED);
+#endif
 }
 
 void readSensors()
@@ -106,7 +117,12 @@ void readSensors()
 	{
 		// This is a stop
 		moveStraight(baseMotorSpeed, baseMotorSpeed);
+#if (BARE_METAL_GPIO_CONTROL_ENABLED == 1)
+		_delay_ms(STOP_CHECK_DELAY);
+#endif
+#if (BARE_METAL_GPIO_CONTROL_ENABLED == 0)
 		delay(STOP_CHECK_DELAY);
+#endif
 		uint16_t sensorDataAgain = getSensorReadings();
 		if (sensorDataAgain == 0b0011111111111100)
 		{
@@ -170,9 +186,6 @@ void controlMotors()
 			turnCW(baseMotorSpeed - leftMotorOffset, baseMotorSpeed - rightMotorOffset);
 			sensorReadings = getSensorReadings();
 		}
-// #if BRAKING_ENABLED == 1
-// 		shortBrake(BRAKE_DURATION_MILLIS);
-// #endif
 #if GAPS_ENABLED == 1
 		error_dir = 0;
 #endif
@@ -188,9 +201,6 @@ void controlMotors()
 			turnCCW(baseMotorSpeed - leftMotorOffset, baseMotorSpeed - rightMotorOffset);
 			sensorReadings = getSensorReadings();
 		}
-// #if BRAKING_ENABLED == 1
-// 		shortBrake(BRAKE_DURATION_MILLIS);
-// #endif
 #if GAPS_ENABLED == 1
 		error_dir = 0;
 #endif
@@ -202,14 +212,49 @@ void controlMotors()
 
 		moveStraight(leftMotorSpeed, rightMotorSpeed);
 
+#if (BARE_METAL_GPIO_CONTROL_ENABLED == 1)
+		if (D != 0)
+			my_delay_ms(loopDelay);
+#endif
+#if (BARE_METAL_GPIO_CONTROL_ENABLED == 0)
 		if (D != 0)
 			delay(loopDelay);
+#endif
 	}
 }
 
 void setup()
 {
 
+#if (BARE_METAL_GPIO_CONTROL_ENABLED == 1)
+
+	// Ports involved for outputs are PORTD and PORTB
+	// Defining the PORTD pins as output
+
+	// Setting the pinouts for the Right Motor Pins
+	DDRD |= (1 << RIGHT_MOTOR_PIN_1) | (1 << RIGHT_MOTOR_PIN_2) | (RIGHT_MOTOR_PWM_PIN);
+	// Same for the indication pins
+	DDRD |= (1 << BUZZER) | (1 << BLUE_LED) | (1 << WHITE_LED);
+	// Setting the pinouts for the Left Motor Pins
+	DDRB |= (1 << LEFT_MOTOR_PIN_1) | (1 << LEFT_MOTOR_PIN_2) | (1 << LEFT_MOTOR_PWM_PIN);
+
+	// Left motor PWM pins
+	// Configure Timer2 for Phase Correct PWM mode with TOP value 255 and frequency roughly 7.8Khz
+	TCCR2A |= (1 << WGM20) | (1 << COM2A1);
+	TCCR2B |= (1 << CS20) | (1 << WGM22);
+	// Value ranges from 0 to 255
+	LEFT_MOTOR_PWM_REGISTER = 0;
+
+	// Right motor PWM pins
+	// Configure Timer1 for Phase Correct PWM mode with TOP value 255 and frequncy roughly 7.8Khz
+	TCCR1A |= (1 << COM1B1) | (1 << WGM10);
+	TCCR1B |= (1 << WGM13) | (1 << CS10);
+	// Value ranges from 0 to 255
+	RIGHT_MOTOR_PWM_REGISTER = 0;
+
+#endif
+
+#if (BARE_METAL_GPIO_CONTROL_ENABLED == 0)
 	pinMode(LEFT_MOTOR_PIN_1, OUTPUT);
 	pinMode(LEFT_MOTOR_PIN_2, OUTPUT);
 	pinMode(RIGHT_MOTOR_PIN_1, OUTPUT);
@@ -220,6 +265,7 @@ void setup()
 	pinMode(BLUE_LED, OUTPUT);
 	pinMode(WHITE_LED, OUTPUT);
 	pinMode(BUZZER, OUTPUT);
+#endif
 
 	Wire.setClock(400000);
 	Wire.begin();
